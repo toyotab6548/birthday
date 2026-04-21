@@ -5,23 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>お誕生日おめでとう！</title>
     <style>
-        body { margin: 0; display: flex; justify-content: center; background: #f0f0f0; }
+        body { margin: 0; display: flex; justify-content: center; background: #f0f0f0; overflow: hidden; }
         #container { position: relative; width: 100vw; max-width: 500px; aspect-ratio: 9/16; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; cursor: crosshair; }
-        img { position: absolute; top: 0; left: 0; width: 100%; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; cursor: crosshair; z-index: 2; }
+        img { position: absolute; top: 0; left: 0; width: 100%; z-index: 1; }
+        #message {
+            position: absolute; bottom: 20px; width: 100%; text-align: center;
+            font-weight: bold; color: #ff0000; z-index: 3; display: none;
+            background: rgba(255,255,255,0.8); padding: 10px 0;
+        }
     </style>
 </head>
 <body>
     <div id="container">
         <img src="result.jpg">
         <canvas id="scratch"></canvas>
+        <div id="message">一発勝負！これ以上は削れません。</div>
     </div>
 
     <script>
         const canvas = document.getElementById('scratch');
         const ctx = canvas.getContext('2d');
+        const msg = document.getElementById('message');
+        let isLocked = false;
+        let scratchCount = 0;
+        const LIMIT = 50; // どれくらい削ったらロックするか（調整可）
+
         const img = new Image();
-        img.src = 'top.jpg'; // 上にかぶせる画像
+        img.src = 'top.jpg';
 
         img.onload = () => {
             canvas.width = img.width;
@@ -31,7 +42,9 @@
         };
 
         function scratch(e) {
+            if (isLocked) return; // ロック中は何もしない
             e.preventDefault();
+            
             const rect = canvas.getBoundingClientRect();
             const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
             const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
@@ -41,6 +54,15 @@
             ctx.beginPath();
             ctx.arc(x * scaleX, y * scaleY, 40, 0, Math.PI * 2);
             ctx.fill();
+
+            scratchCount++;
+            // 一定回数以上なぞったらロック
+            if (scratchCount > LIMIT) {
+                setTimeout(() => {
+                    isLocked = true;
+                    msg.style.display = 'block'; // メッセージ表示
+                }, 500); // 0.5秒だけ猶予をあたえてロック
+            }
         }
 
         canvas.addEventListener('mousemove', scratch);
