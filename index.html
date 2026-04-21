@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>お誕生日おめでとう！</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; background: #f0f0f0; }
+        #container { position: relative; width: 100vw; max-width: 500px; aspect-ratio: 9/16; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; cursor: crosshair; }
+        img { position: absolute; top: 0; left: 0; width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <img src="result.jpg">
+        <canvas id="scratch"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('scratch');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.src = 'top.jpg'; // 上にかぶせる画像
+
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            ctx.globalCompositeOperation = 'destination-out';
+        };
+
+        function scratch(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            ctx.beginPath();
+            ctx.arc(x * scaleX, y * scaleY, 40, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        canvas.addEventListener('mousemove', scratch);
+        canvas.addEventListener('touchmove', scratch);
+    </script>
+</body>
+</html>
